@@ -22,12 +22,15 @@ public class ProducerApplication {
     public static void main(String[] args) throws InterruptedException {
         ConfigurableApplicationContext appContext = SpringApplication.run(ProducerApplication.class, args);
 
+        // start two separates threads encrypting random strings to mimic varying load on CPU and memory.
         new Thread(new LoadGenerator("ssshhhhhhhhhhh??".getBytes(StandardCharsets.UTF_8))).start();
         new Thread(new LoadGenerator("ssshhhhhhhhhhh!!".getBytes(StandardCharsets.UTF_8))).start();
 
         KafkaProducer producer = appContext.getBean(KafkaProducer.class);
 
         OperatingSystemMXBean operatingSystemMXBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+
+        // continuously send a SystemMetricsMessage to the topic, every 0.5 seconds.
         while(true) {
             SystemMetricsMessage message = new SystemMetricsMessage(operatingSystemMXBean.getCpuLoad(),
                     operatingSystemMXBean.getTotalMemorySize(), operatingSystemMXBean.getFreeMemorySize());
